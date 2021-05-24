@@ -16,6 +16,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="30dp"
         android:layout_marginBottom="40dp"
+        map:mapType="hybrid"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
