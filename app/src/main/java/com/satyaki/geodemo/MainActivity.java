@@ -7,11 +7,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -21,7 +23,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.common.internal.Constants;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -34,6 +40,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
@@ -51,6 +58,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     GoogleMap m_googleMaps;
     LocationRequest locationRequest;
     LocationSettingsRequest.Builder builder;
+    GeofencingClient geofencingClient;
+    LatLng latLng;
+    GeofencingClass geofencingClass;
+    String GEOFENCE_ID="999";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +74,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(MainActivity.this);
 
+
+        geofencingClient = LocationServices.getGeofencingClient(this);
+        geofencingClass = new GeofencingClass(this);
+
         createLocationRequest();
         checkLocationPermission();
+
+    }
+
+    public void addCircle(LatLng latLng, float radius) {
+
+        CircleOptions circleOptions = new CircleOptions();
+        circleOptions.center(latLng);
+        circleOptions.radius(radius);
+        circleOptions.strokeColor(Color.argb(255, 255, 0, 0));
+        circleOptions.strokeWidth(4);
+        m_googleMaps.addCircle(circleOptions);
+    }
+
+    public void addGeofence() {
+
+        Geofence geofence = geofencingClass.getGeofence(GEOFENCE_ID, latLng, 100);
+        GeofencingRequest geofencingRequest = geofencingClass.getGeofencingRequest(geofence);
+        PendingIntent pendingIntent = geofencingClass.getGeofencePendingIntent();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        //Added Geofences
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.i("Check",e.toString());
+            }
+        });
 
     }
 
@@ -78,6 +136,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder = new LocationSettingsRequest.Builder();
 
     }
+
+
 
     public void requestCurrentLocations() {
 
