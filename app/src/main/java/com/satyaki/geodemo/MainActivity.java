@@ -1,6 +1,7 @@
 package com.satyaki.geodemo;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -16,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
@@ -62,8 +64,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LatLng latLng;
     GeofencingClass geofencingClass;
     String GEOFENCE_ID="999";
+    LocationCallback locationCallback;
+    int n_check=0;
 
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         createLocationRequest();
         checkLocationPermission();
 
+        latLng=new LatLng(22.5703204,88.3942849);
+
     }
 
     public void addCircle(LatLng latLng, float radius) {
@@ -89,37 +96,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         circleOptions.center(latLng);
         circleOptions.radius(radius);
         circleOptions.strokeColor(Color.argb(255, 255, 0, 0));
+        circleOptions.fillColor(Color.argb(54,225,0,0));
         circleOptions.strokeWidth(4);
         m_googleMaps.addCircle(circleOptions);
     }
 
-    public void addGeofence() {
+    public void addGeofencing(){
 
-        Geofence geofence = geofencingClass.getGeofence(GEOFENCE_ID, latLng, 100);
+        Geofence geofence = geofencingClass.getGeofence(GEOFENCE_ID, latLng, 50);
         GeofencingRequest geofencingRequest = geofencingClass.getGeofencingRequest(geofence);
         PendingIntent pendingIntent = geofencingClass.getGeofencePendingIntent();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+
         }
 
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        //Added Geofences
+                        Log.i("Success","Done ok");
                     }
                 }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.i("Check",e.toString());
+                e.printStackTrace();
             }
         });
 
@@ -137,6 +139,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public void stopLocation(){
+        fusedLocationClient.removeLocationUpdates(locationCallback);
+    }
 
 
     public void requestCurrentLocations() {
@@ -144,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-            LocationCallback locationCallback=new LocationCallback(){
+           locationCallback=new LocationCallback(){
 
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
@@ -162,13 +167,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 .title("Marker"));
                         m_googleMaps.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
 
+                        Log.i("OKKK",latitude.toString());
+                        Log.i("OKKKK",longitude.toString());
+
+                        n_check+=1;
                     }
+                    if(n_check==1){
+
+                        addCircle(latLng,50);
+                        addGeofencing();
+                    }
+
                 }
 
             };
 
             LocationServices.getFusedLocationProviderClient(MainActivity.this)
                     .requestLocationUpdates(locationRequest,locationCallback,Looper.myLooper());
+
+            //addCircle(latLng,100);
 
         }
 
@@ -190,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void checkLocationPermission() {
 
         if (ContextCompat.checkSelfPermission(this,
@@ -197,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 != PackageManager.PERMISSION_GRANTED) {
 
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                         MY_PERMISSIONS_REQUEST_LOCATION);
         }
         else
@@ -215,7 +233,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     if (ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_BACKGROUND_LOCATION)==PackageManager.PERMISSION_GRANTED) {
                              requestCurrentLocations();
                     }
 

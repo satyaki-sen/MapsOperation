@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
@@ -23,7 +24,7 @@ class GeofencingClass extends ContextWrapper {
 
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.addGeofence(geofence);
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.setInitialTrigger(Geofence.GEOFENCE_TRANSITION_ENTER);
        // builder.addGeofences(geofenceList);
         return builder.build();
     }
@@ -35,7 +36,7 @@ class GeofencingClass extends ContextWrapper {
                 .setCircularRegion(latLng.latitude,latLng.longitude,radius)
                 .setRequestId(id)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_EXIT)
+                        Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
                 .setLoiteringDelay(5000)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build();
@@ -47,6 +48,8 @@ class GeofencingClass extends ContextWrapper {
         if (geofencePendingIntent != null) {
             return geofencePendingIntent;
         }
+
+        Log.i("Yoo","Ok");
         Intent intent = new Intent(this, GeofenceBroadcastClass.class);
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
