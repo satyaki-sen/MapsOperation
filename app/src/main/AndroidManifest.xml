@@ -14,11 +14,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.GeoDemo"
-        android:enabled="true"
-        android:exported="true">
+        >
 
 
-        <receiver android:name=".GeofenceBroadcastClass"/>
+        <receiver android:name="com.satyaki.geodemo.GeofenceBroadcastClass"
+            android:enabled="true"
+            android:exported="true"/>
 
         <meta-data
             android:name="com.google.android.gms.version"

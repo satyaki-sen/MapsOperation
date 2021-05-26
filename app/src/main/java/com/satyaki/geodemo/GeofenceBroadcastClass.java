@@ -12,7 +12,7 @@ import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.List;
 
-class GeofenceBroadcastClass extends BroadcastReceiver {
+public class GeofenceBroadcastClass extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

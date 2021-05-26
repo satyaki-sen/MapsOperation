@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
@@ -37,7 +38,7 @@ class GeofencingClass extends ContextWrapper {
                 .setRequestId(id)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
                         Geofence.GEOFENCE_TRANSITION_EXIT | Geofence.GEOFENCE_TRANSITION_DWELL)
-                .setLoiteringDelay(5000)
+                .setLoiteringDelay(2000)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build();
 
@@ -50,7 +51,9 @@ class GeofencingClass extends ContextWrapper {
         }
 
         Log.i("Yoo","Ok");
-        Intent intent = new Intent(this, GeofenceBroadcastClass.class);
+        Intent intent = new Intent(this,GeofenceBroadcastClass.class);
+
+        Toast.makeText(this, "Working.....", Toast.LENGTH_SHORT).show();
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
         geofencePendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
